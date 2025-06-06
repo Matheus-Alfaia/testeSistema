@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Documentos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: center; }
+    th { background-color: #f2f2f2; }
+    input, select, button, textarea { padding: 5px; margin: 5px; }
+    .selected { background-color: #cce5ff !important; }
+    .flex { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .modal { display: none; position: fixed; top: 20%; left: 50%; transform: translateX(-50%);
+             background-color: white; padding: 20px; border: 1px solid #ccc; z-index: 1000; }
+    .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+               background-color: rgba(0,0,0,0.5); z-index: 999; }
+  </style>
+</head>
+<body>
+
+  <h2>Sistema de Cadastro de Documentos</h2>
+
+  <div class="flex">
+    <input type="text" id="id" placeholder="ID">
+    <input type="text" id="disciplina" placeholder="Disciplina">
+    <input type="text" id="etapa" placeholder="Etapa">
+    <select id="doc1"><option value="">Doc1</option><option>Concluído</option><option>Pendente</option></select>
+    <select id="doc2"><option value="">Doc2</option><option>Concluído</option><option>Pendente</option></select>
+    <select id="doc3"><option value="">Doc3</option><option>Concluído</option><option>Pendente</option></select>
+    <input type="text" id="observacoes" placeholder="Observações">
+    <button onclick="adicionarRegistro()">Adicionar</button>
+    <button onclick="exportarExcel()">Exportar Excel</button>
+    <button onclick="abrirModal()">Atualizar Selecionados</button>
+  </div>
+
+  <table id="tabela">
+    <thead>
+      <tr>
+        <th></th>
+        <th>ID</th>
+        <th>Disciplina</th>
+        <th>Etapa</th>
+        <th>Doc1</th>
+        <th>Doc2</th>
+        <th>Doc3</th>
+        <th>% Concluído</th>
+        <th>Observações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <!-- Modal de Atualização -->
+  <div class="overlay" id="overlay"></div>
+  <div class="modal" id="modal">
+    <h3>Atualizar Selecionados</h3>
+    <select id="novoStatus">
+      <option value="">Novo Status</option>
+      <option>Concluído</option>
+      <option>Pendente</option>
+    </select>
+    <input type="text" id="novaObs" placeholder="Nova Observação">
+    <div>
+      <button onclick="atualizarSelecionados()">Aplicar</button>
+      <button onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    const tabela = document.querySelector("#tabela tbody");
+    let registros = JSON.parse(localStorage.getItem("registros") || "[]");
+
+    function calcularPercentual(doc1, doc2, doc3) {
+      const total = [doc1, doc2, doc3].filter(doc => doc !== "").length;
+      const concluidos = [doc1, doc2, doc3].filter(doc => doc === "Concluído").length;
+      return total ? Math.round((concluidos / total) * 100) + "%" : "0%";
+    }
+
+    function salvarLocal() {
+      localStorage.setItem("registros", JSON.stringify(registros));
+    }
+
+    function renderizarTabela() {
+      tabela.innerHTML = "";
+      registros.forEach((r, i) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><input type="checkbox" onchange="toggleSelecionado(${i})" ${r.selecionado ? "checked" : ""}></td>
+          <td>${r.id}</td>
+          <td>${r.disciplina}</td>
+          <td>${r.etapa}</td>
+          <td>${r.doc1}</td>
+          <td>${r.doc2}</td>
+          <td>${r.doc3}</td>
+          <td>${calcularPercentual(r.doc1, r.doc2, r.doc3)}</td>
+          <td>${r.observacoes}</td>
+        `;
+        if (r.selecionado) tr.classList.add("selected");
+        tabela.appendChild(tr);
+      });
+    }
+
+    function adicionarRegistro() {
+      const id = document.getElementById("id").value;
+      const disciplina = document.getElementById("disciplina").value;
+      const etapa = document.getElementById("etapa").value;
+      const doc1 = document.getElementById("doc1").value;
+      const doc2 = document.getElementById("doc2").value;
+      const doc3 = document.getElementById("doc3").value;
+      const observacoes = document.getElementById("observacoes").value;
+
+      if (!id || !disciplina || !etapa) return alert("Preencha ID, Disciplina e Etapa.");
+
+      registros.push({ id, disciplina, etapa, doc1, doc2, doc3, observacoes, selecionado: false });
+      salvarLocal();
+      renderizarTabela();
+    }
+
+    function toggleSelecionado(index) {
+      registros[index].selecionado = !registros[index].selecionado;
+      salvarLocal();
+      renderizarTabela();
+    }
+
+    function abrirModal() {
+      document.getElementById("modal").style.display = "block";
+      document.getElementById("overlay").style.display = "block";
+    }
+
+    function fecharModal() {
+      document.getElementById("modal").style.display = "none";
+      document.getElementById("overlay").style.display = "none";
+    }
+
+    function atualizarSelecionados() {
+      const novoStatus = document.getElementById("novoStatus").value;
+      const novaObs = document.getElementById("novaObs").value;
+
+      registros.forEach(r => {
+        if (r.selecionado) {
+          if (novoStatus) {
+            r.doc1 = novoStatus;
+            r.doc2 = novoStatus;
+            r.doc3 = novoStatus;
+          }
+          if (novaObs) r.observacoes = novaObs;
+          r.selecionado = false;
+        }
+      });
+
+      salvarLocal();
+      renderizarTabela();
+      fecharModal();
+    }
+
+    function exportarExcel() {
+      const wsData = [
+        ["ID", "Disciplina", "Etapa", "Doc1", "Doc2", "Doc3", "% Concluído", "Observações"]
+      ];
+      registros.forEach(r => {
+        wsData.push([
+          r.id, r.disciplina, r.etapa,
+          r.doc1, r.doc2, r.doc3,
+          calcularPercentual(r.doc1, r.doc2, r.doc3),
+          r.observacoes
+        ]);
+      });
+      const ws = XLSX.utils.aoa_to_sheet(wsData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Documentos");
+      XLSX.writeFile(wb, "documentos.xlsx");
+    }
+
+    renderizarTabela();
+  </script>
+</body>
+</html>

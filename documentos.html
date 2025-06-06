@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Documentos - Detalhes por ID</title>
+ <link rel="stylesheet" href="css.css">
+</head>
+<body>
+  
+  <table>
+    <thead>
+      <tr>
+        <th>Disciplina</th>
+        <th>ID</th>
+        <th>Etapa</th>
+        <th>Documento</th>
+        <th>Status</th>
+        <th>Observação</th>
+      </tr>
+    </thead>
+    <tbody id="tabelaDocumentosBody"></tbody>
+  </table>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+const id = params.get('id');
+
+console.log('ID da URL:', id);
+
+const registros = JSON.parse(localStorage.getItem('documentos')) || [];
+console.log('Registros no localStorage:', registros);
+
+const registrosFiltrados = registros.filter(r => String(r.ID) === String(id));
+console.log('Registros filtrados:', registrosFiltrados);
+
+const tbody = document.getElementById('tabelaDocumentosBody');
+
+if (!id) {
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:red;">ID não fornecido na URL.</td></tr>`;
+} else if (registrosFiltrados.length === 0) {
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">Nenhum documento encontrado para o ID "${id}".</td></tr>`;
+} else {
+  registrosFiltrados.forEach(registro => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${registro.Disciplina}</td>
+      <td>${registro.ID}</td>
+      <td>${registro.Etapa}</td>
+      <td>${registro.Documento}</td>
+      <td>${registro.Status}</td>
+      <td>${registro.Observação || ''}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+  </script>
+</body>
+</html>

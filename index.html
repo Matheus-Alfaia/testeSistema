@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sistema de Documentos</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="stylesheet" href="css.css">
+
+  </head>
+<body>
+
+  <form id="formDocumento">
+    <h1>Cadastrar Documento</h1>
+
+    <label>Disciplina:
+      <select id="disciplina">
+        <option value="TUB">TUB</option>
+        <option value="EQP.DIN">EQP.DIN</option>
+        <option value="EQP.EST">EQP.EST</option>
+      </select>
+    </label>
+
+    <label>ID:
+      <input type="text" id="id" />
+    </label>
+
+    <label>Etapa:
+      <select id="etapa">
+        <option value="BACKFEED">BACKFEED</option>
+        <option value="LUBE OIL">LUBE OIL</option>
+        <option value="FIRST FIRE">FIRST FIRE</option>
+      </select>
+    </label>
+
+    <h3>Status dos Documentos:</h3>
+
+    <div class="doc-item">
+      <label>SISPRE:
+        <select class="statusDoc">
+          <option value="pendente">PENDENTE</option>
+          <option value="ok">OK</option>
+        </select>
+      </label>
+      <label>Observação:
+        <input type="text" class="obsDoc">
+      </label>
+    </div>
+
+    <div class="doc-item">
+      <label>FLUXO TESTE/PONTO DE TESTE:
+        <select class="statusDoc">
+          <option value="pendente">PENDENTE</option>
+          <option value="ok">OK</option>
+        </select>
+      </label>
+      <label>Observação:
+        <input type="text" class="obsDoc">
+      </label>
+    </div>
+
+    <div class="doc-item">
+      <label>ISO:
+        <select class="statusDoc">
+          <option value="-">-</option>
+          <option value="pendente">PENDENTE</option>
+          <option value="ok">OK</option>
+        </select>
+      </label>
+      <label>Observação:
+        <input type="text" class="obsDoc">
+      </label>
+    </div>
+
+    <div class="doc-item">
+      <label>P&ID:
+        <select class="statusDoc">
+          <option value="pendente">PENDENTE</option>
+          <option value="ok">OK</option>
+        </select>
+      </label>
+      <label>Observação:
+        <input type="text" class="obsDoc">
+      </label>
+    </div>
+
+    <div class="doc-item">
+      <label>DESENHO SUPORTE:
+        <select class="statusDoc">
+          <option value="pendente">PENDENTE</option>
+          <option value="ok">OK</option>
+        </select>
+      </label>
+      <label>Observação:
+        <input type="text" class="obsDoc">
+      </label>
+    </div>
+
+    <div class="doc-item">
+      <label>IMPRESSÃO:
+        <select class="statusDoc">
+          <option value="pendente">PENDENTE</option>
+          <option value="ok">OK</option>
+        </select>
+      </label>
+      <label>Observação:
+        <input type="text" class="obsDoc">
+      </label>
+    </div>
+
+    <p><strong>% de conclusão:</strong> <span id="percentual">0%</span></p>
+
+    <button type="submit">Salvar</button>
+    <button type="button" id="exportar">Exportar Planilha</button>
+  </form>
+
+  <div id="visualizacao">
+    <h3>Visualização dos Dados</h3>
+    <button id="btnAbrirModal">Atualizar Selecionadas</button>
+
+
+    <table id="tabelaDados">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="selecionarTodos"></th>
+          <th>Disciplina</th>
+          <th>ID</th>
+          <th>Etapa</th>
+          <th>Documento</th>
+          <th>Status</th>
+          <th>%</th>
+          <th>Observação</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <div id="modalAtualizar">
+    <h3>Atualizar Status e Observação</h3>
+    <label>Novo Status:
+      <select id="novoStatus">
+        <option value="ok">OK</option>
+        <option value="pendente">PENDENTE</option>
+      </select>
+    </label>
+    <label>Nova Observação:
+      <input type="text" id="novaObs" />
+    </label>
+    <button id="confirmarAtualizacao">Confirmar</button>
+    <button onclick="document.getElementById('modalAtualizar').style.display='none'">Cancelar</button>
+  </div>
+
+  <script>
+    const form = document.getElementById('formDocumento');
+    const percentualDisplay = document.getElementById('percentual');
+    const statusDocs = document.querySelectorAll('.statusDoc');
+    const obsDocs = document.querySelectorAll('.obsDoc');
+    const tabelaBody = document.querySelector('#tabelaDados tbody');
+    const exportarBtn = document.getElementById('exportar');
+    const btnAbrirModal = document.getElementById('btnAbrirModal');
+    const modal = document.getElementById('modalAtualizar');
+    const novoStatus = document.getElementById('novoStatus');
+    const novaObs = document.getElementById('novaObs');
+    const confirmarBtn = document.getElementById('confirmarAtualizacao');
+    const selecionarTodos = document.getElementById('selecionarTodos');
+    let registros = [];
+    const dadosSalvos = localStorage.getItem('documentos'); 
+    registros = dadosSalvos ? JSON.parse(dadosSalvos) : [];
+    renderizarTabela(); // renderiza os dados salvos
+
+
+
+    function calcularPercentual() {
+      let total = 0;
+      let okCount = 0;
+      statusDocs.forEach(s => {
+        if (s.value !== "-") {
+          total++;
+          if (s.value === "ok") okCount++;
+        }
+      });
+      return total === 0 ? 0 : Math.round((okCount / total) * 100);
+    }
+
+    statusDocs.forEach(s => {
+      s.addEventListener('change', () => {
+        percentualDisplay.textContent = calcularPercentual() + '%';
+      });
+    });
+
+function renderizarTabela() {
+  tabelaBody.innerHTML = ''; // Limpa a tabela antes de renderizar
+
+  const idsUnicos = new Set();
+  const registrosUnicos = [];
+
+  // Filtra para manter apenas o primeiro registro de cada ID
+  registros.forEach(registro => {
+    if (!idsUnicos.has(registro.ID)) {
+      idsUnicos.add(registro.ID);
+      registrosUnicos.push(registro);
+    }
+  });
+
+  registrosUnicos.forEach(registro => {
+    const linha = document.createElement('tr');
+    linha.innerHTML = `
+      <td><input type="checkbox" class="selecaoLinha"></td>
+      <td>${registro.Disciplina}</td>
+      <td>${registro.ID}</td>
+      <td>${registro.Etapa}</td>
+      <td><a href="documentos.html?id=${registro.ID}" target="_blank">Ver</a></td>
+      <td>${registro.Status}</td>
+      <td>${registro.Percentual}</td>
+      <td>${registro.Observacao}</td>
+    `;
+    tabelaBody.appendChild(linha);
+  });
+}
+
+
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const id = document.getElementById('id').value.trim();
+      const disciplina = document.getElementById('disciplina').value;
+      const etapa = document.getElementById('etapa').value;
+      const percentual = calcularPercentual() + '%';
+      if (!id) return alert('Por favor, preencha o ID!');
+
+      statusDocs.forEach((el, i) => {
+        const documento = el.parentElement.textContent.split(':')[0].trim();
+        const status = el.value.toUpperCase();
+        const observacao = obsDocs[i].value;
+        const registro = {
+          Disciplina: disciplina,
+          ID: id,
+          Etapa: etapa,
+          Documento: documento,
+          Status: status,
+          Percentual: percentual,
+          Observação: observacao
+        };
+        registros.push(registro);
+    localStorage.setItem('documentos', JSON.stringify(registros));
+
+
+        const linha = document.createElement('tr');
+        linha.innerHTML = `
+          <td><input type="checkbox" class="selecaoLinha"></td>
+          <td>${registro.Disciplina}</td>
+          <td>${registro.ID}</td>
+          <td>${registro.Etapa}</td>
+          <td>${registro.Documento}</td>
+          <td>${registro.Status}</td>
+          <td>${registro.Percentual}</td>
+          <td>${registro.Observação}</td>
+        `;
+        tabelaBody.appendChild(linha);
+      });
+
+      alert('Dados salvos com sucesso!');
+      location.reload();
+    });
+
+    exportarBtn.addEventListener('click', () => {
+      if (registros.length === 0) return alert('Nenhum dado para exportar!');
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(registros);
+      XLSX.utils.book_append_sheet(wb, ws, 'CadastroCompleto');
+      XLSX.writeFile(wb, 'cadastro_completo.xlsx');
+    });
+
+    btnAbrirModal.addEventListener('click', () => {
+      modal.style.display = 'block';
+    });
+
+    confirmarBtn.addEventListener('click', () => {
+      const linhas = document.querySelectorAll('.selecaoLinha:checked');
+      const status = novoStatus.value.toUpperCase();
+      const obs = novaObs.value;
+
+      const docsPorId = {};
+
+      linhas.forEach(linha => {
+        const tr = linha.closest('tr');
+        const id = tr.cells[2].textContent;
+        const doc = tr.cells[4].textContent;
+
+        tr.cells[5].textContent = status;
+        tr.cells[7].textContent = obs;
+
+        const registro = registros.find(r => r.ID === id && r.Documento === doc);
+        if (registro) {
+          registro.Status = status;
+          registro.Observação = obs;
+        }
+
+        if (!docsPorId[id]) docsPorId[id] = [];
+        docsPorId[id].push({ doc, status });
+      });
+
+      Object.keys(docsPorId).forEach(id => {
+        const docs = registros.filter(r => r.ID === id);
+        const total = docs.filter(d => d.Status !== '-').length;
+        const okCount = docs.filter(d => d.Status === 'OK').length;
+        const novoPercentual = total > 0 ? Math.round((okCount / total) * 100) + '%' : '0%';
+
+        const linhasTabela = Array.from(tabelaBody.querySelectorAll('tr')).filter(tr => tr.cells[2].textContent === id);
+        linhasTabela.forEach(tr => {
+          tr.cells[6].textContent = novoPercentual;
+        });
+
+        docs.forEach(d => {
+          d.Percentual = novoPercentual;
+        });
+      });
+      localStorage.setItem('documentos', JSON.stringify(registros));
+
+
+      modal.style.display = 'none';
+      alert('Atualização realizada com sucesso!');
+    });
+
+    selecionarTodos.addEventListener('change', () => {
+      document.querySelectorAll('.selecaoLinha').forEach(chk => chk.checked = selecionarTodos.checked);
+    });
+
+  </script>
+</body>
+</html>

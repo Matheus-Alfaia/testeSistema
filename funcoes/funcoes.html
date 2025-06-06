@@ -1,0 +1,12 @@
+
+function calcularPercentual() {
+      let total = 0;
+      let okCount = 0;
+      statusDocs.forEach(s => {
+        if (s.value !== "-") {
+          total++;
+          if (s.value === "ok") okCount++;
+        }
+      });
+      return total === 0 ? 0 : Math.round((okCount / total) * 100);
+    }
