@@ -1,0 +1,220 @@
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #d9eff2;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      gap: 30px;
+    }
+.percentual-completo {
+  background-color: #d4edda; /* verde claro */
+  color: #155724;
+  font-weight: bold;
+}
+
+.percentual-incompleto {
+  background-color: #f8d7da; /* vermelho claro */
+  color: #721c24;
+  font-weight: bold;
+}
+.id-completo {
+  background-color: #d4edda; /* verde claro */
+  color: #155724;
+  font-weight: bold;
+}
+
+.id-incompleto {
+  background-color: #f8d7da; /* vermelho claro */
+  color: #721c24;
+  font-weight: bold;
+}
+
+
+
+    form, #visualizacao {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    form {
+      width: 45%;
+      background: #e8fafc;
+    }
+
+    #visualizacao {
+      width: 50%;
+      background: #e8fafc;
+      max-height: 95vh;
+      overflow: auto;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    h1, h3 {
+      color: #333;
+      margin-top: 0;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 15px;
+      font-weight: bold;
+     
+    }
+
+    select, input {
+      padding: 8px;
+      margin-top: 5px;
+      border: 2px solid #190a6c;
+      border-radius: 10px;
+      font-size: 14px;
+      background: #d5e4fb;
+    }
+
+    .doc-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .btnPadrao {
+      padding: 10px 20px;
+      margin: 5px 5px 5px 0;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #007bff;
+      color: white;
+    }
+
+    .btnSubmit {
+      padding: 10px 20px;
+      margin: 5px 5px 5px 0;
+      font-size: 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background-color: #3cab30;
+      color: white;
+    }
+    .btnSubmit:hover {
+      background-color: #6bd260;
+      color: black;
+    }
+
+    .btnExcluir{
+      padding: 10px 15px;
+      margin: 5px 5px 5px 5px;
+      font-size: 12px;
+      border: 2px solid #c82848;
+      border-radius: 10px;
+      cursor: pointer;
+      background-color: #f5bcc0;
+      color: red;
+    }
+
+    .btnExcluir:hover{
+     background-color: #e4605e;
+     color:white;
+     
+    }
+
+    .btnPadrao:hover {
+      background-color: #0056b3;
+    }
+    .btnCancelar{
+      padding: 10px 15px;
+      margin: 5px 5px 5px 5px;
+      font-size: 12px;
+      border: 1px solid #d0d123;
+      border-radius: 10px;
+      cursor: pointer;
+      background-color: #f3f38b;
+      float: right;
+    }
+
+    #percentual {
+      font-size: 16px;
+      font-weight: bold;
+      color: #007bff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      margin-top: 10px;
+ 
+    }
+
+    th, td {
+      border: 2px solid #ffffff;
+      padding: 6px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #007bff;
+      color: white;
+      
+    }
+
+    td {
+      background-color: #d5e4fb;
+    }
+   .icones{
+      width:20px;
+      height: 20px;
+      vertical-align: middle;
+      alignt-itens: center;
+    }
+
+   #contadorPastas h3 {
+     font-size: 1.5em;
+     margin-bottom: 10px;
+     color: #007BFF;
+    }
+
+   #contadorPastas h4 {
+     font-size: 1.2em;
+     margin-bottom: 8px;
+     color: #555;
+   }
+
+   #pastasPorEtapa {
+     list-style-type: none;
+     padding-left: 2px;
+   }
+
+   #pastasPorEtapa li {
+     background-color: #e9f1ff;
+     padding: 10px;
+     margin-bottom: 6px;
+     border-radius: 9px;
+     border-left: 5px solid #007BFF;
+     transition: background-color 0.3s;
+   }
+
+   #pastasPorEtapa li:hover {
+     background-color: #d6e8ff;
+   }
+
+    #modalAtualizar {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border: 2px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      display: none;
+      z-index: 1000;
+      border-radius: 10px;
+    }

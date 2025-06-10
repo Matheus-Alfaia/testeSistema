@@ -6,16 +6,17 @@
  <link rel="stylesheet" href="css.css">
 </head>
 <body>
-  
   <table>
     <thead>
       <tr>
+	<th><input type="checkbox" class="selecaoLinha"></th>
+
         <th>Disciplina</th>
         <th>ID</th>
         <th>Etapa</th>
         <th>Documento</th>
-        <th>Status</th>
-        <th>Observação</th>
+	<th>Status</th>
+        <th>Editar</th>
       </tr>
     </thead>
     <tbody id="tabelaDocumentosBody"></tbody>
@@ -43,16 +44,19 @@ if (!id) {
   registrosFiltrados.forEach(registro => {
     const tr = document.createElement('tr');
     tr.innerHTML = `
+      <td><input type="checkbox" class="selecaoLinha"></td>
       <td>${registro.Disciplina}</td>
       <td>${registro.ID}</td>
       <td>${registro.Etapa}</td>
       <td>${registro.Documento}</td>
       <td>${registro.Status}</td>
-      <td>${registro.Observação || ''}</td>
     `;
     tbody.appendChild(tr);
   });
-}
+
+  // ✅ Alerta com observações
+  }
+
   </script>
 </body>
 </html>

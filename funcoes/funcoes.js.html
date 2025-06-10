@@ -1,0 +1,28 @@
+	
+function atualizarContadores() {
+  // Total de pastas únicas (IDs únicos)
+  const idsUnicos = new Set(registros.map(r => r.ID));
+  document.getElementById('totalPastas').textContent = idsUnicos.size;
+
+  // Contar pastas por etapa (considerando IDs únicos)
+  const etapasCount = {};
+  // Vamos considerar só um registro por ID para cada etapa
+  const vistosPorId = {};
+
+  registros.forEach(r => {
+    if (!vistosPorId[r.ID]) {
+      vistosPorId[r.ID] = true;
+      etapasCount[r.Etapa] = (etapasCount[r.Etapa] || 0) + 1;
+    }
+  });
+
+  const ul = document.getElementById('pastasPorEtapa');
+  ul.innerHTML = ''; // Limpa antes de atualizar
+
+  for (const etapa in etapasCount) {
+    const li = document.createElement('li');
+    li.textContent = `${etapa}: ${etapasCount[etapa]}`;
+    ul.appendChild(li);
+  }
+}
+
