@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <title>Sistema de Documentos</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="funcoes/funcao.js"></script>
+
 <link rel="stylesheet" href="css.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
   </head>
 <body>
@@ -109,13 +113,20 @@
 
     <p><strong>% de conclusão:</strong> <span id="percentual">0%</span></p>
 
-    <button type="submit">Salvar</button>
-    <button type="button" id="exportar">Exportar Planilha</button>
+    <button class="btnSubmit" type="submit">Salvar</button>
+    <button class="btnPadrao" type="button" id="exportar">Exportar Planilha</button>
   </form>
 
   <div id="visualizacao">
+	<div id="contadorPastas">
+  	<h3>Total de Pastas: <span id="totalPastas">0</span></h3>
+  	<h4>Pastas por Etapa:</h4>
+  	<ul id="pastasPorEtapa"></ul>
+  </div>
+
+
     <h3>Visualização dos Dados</h3>
-    <button id="btnAbrirModal">Atualizar Selecionadas</button>
+    <button class="btnPadrao" id="btnAbrirModal">Atualizar Selecionadas</button>
 
 
     <table id="tabelaDados">
@@ -125,10 +136,11 @@
           <th>Disciplina</th>
           <th>ID</th>
           <th>Etapa</th>
-          <th>Documento</th>
+          <th>Documentos</th>
           <th>Status</th>
           <th>%</th>
           <th>Observação</th>
+	  <th>Remover</th>
         </tr>
       </thead>
       <tbody></tbody>
@@ -143,11 +155,18 @@
         <option value="pendente">PENDENTE</option>
       </select>
     </label>
+    <label>ID Inicial:
+      <input type="number" id="idInicio" value="00001" placeholder="ex: 00001" maxlength="5" pattern="\d{5}">
+    </label>
+    <label>ID Final:
+      <input type="number" id="idFim" value="00002" placeholder="ex: 00010" maxlength="5" pattern="\d{5}">
+    </label>
+
     <label>Nova Observação:
       <input type="text" id="novaObs" />
     </label>
-    <button id="confirmarAtualizacao">Confirmar</button>
-    <button onclick="document.getElementById('modalAtualizar').style.display='none'">Cancelar</button>
+    <button class="btnPadrao" id="confirmarAtualizacao">Confirmar</button>
+    <button class="btnCancelar" onclick="document.getElementById('modalAtualizar').style.display='none'">Cancelar</button>
   </div>
 
   <script>
@@ -160,6 +179,8 @@
     const btnAbrirModal = document.getElementById('btnAbrirModal');
     const modal = document.getElementById('modalAtualizar');
     const novoStatus = document.getElementById('novoStatus');
+    const idInicio = document.getElementById('idInicio');
+    const idFim = document.getElementById('idFim'); 
     const novaObs = document.getElementById('novaObs');
     const confirmarBtn = document.getElementById('confirmarAtualizacao');
     const selecionarTodos = document.getElementById('selecionarTodos');
@@ -169,92 +190,54 @@
     renderizarTabela(); // renderiza os dados salvos
 
 
-
-    function calcularPercentual() {
-      let total = 0;
-      let okCount = 0;
-      statusDocs.forEach(s => {
-        if (s.value !== "-") {
-          total++;
-          if (s.value === "ok") okCount++;
-        }
-      });
-      return total === 0 ? 0 : Math.round((okCount / total) * 100);
-    }
-
     statusDocs.forEach(s => {
       s.addEventListener('change', () => {
         percentualDisplay.textContent = calcularPercentual() + '%';
       });
     });
 
-function renderizarTabela() {
-  tabelaBody.innerHTML = ''; // Limpa a tabela antes de renderizar
-
-  const idsUnicos = new Set();
-  const registrosUnicos = [];
-
-  // Filtra para manter apenas o primeiro registro de cada ID
-  registros.forEach(registro => {
-    if (!idsUnicos.has(registro.ID)) {
-      idsUnicos.add(registro.ID);
-      registrosUnicos.push(registro);
-    }
-  });
-
-  registrosUnicos.forEach(registro => {
-    const linha = document.createElement('tr');
-    linha.innerHTML = `
-      <td><input type="checkbox" class="selecaoLinha"></td>
-      <td>${registro.Disciplina}</td>
-      <td>${registro.ID}</td>
-      <td>${registro.Etapa}</td>
-      <td><a href="documentos.html?id=${registro.ID}" target="_blank">Ver</a></td>
-      <td>${registro.Status}</td>
-      <td>${registro.Percentual}</td>
-      <td>${registro.Observacao}</td>
-    `;
-    tabelaBody.appendChild(linha);
-  });
-}
-
 
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       const id = document.getElementById('id').value.trim();
+      const numeros = id.match(/\d/g);
+      const quantidade = numeros ? numeros.length : 0;
       const disciplina = document.getElementById('disciplina').value;
       const etapa = document.getElementById('etapa').value;
       const percentual = calcularPercentual() + '%';
-      if (!id) return alert('Por favor, preencha o ID!');
-
-      statusDocs.forEach((el, i) => {
+      if (!id || (quantidade < 5)|| (quantidade > 5)) return alert('Por favor, preencha o ID corretamente!');
+           statusDocs.forEach((el, i) => {
         const documento = el.parentElement.textContent.split(':')[0].trim();
         const status = el.value.toUpperCase();
         const observacao = obsDocs[i].value;
-        const registro = {
+                const registro = {
           Disciplina: disciplina,
           ID: id,
           Etapa: etapa,
           Documento: documento,
           Status: status,
           Percentual: percentual,
-          Observação: observacao
+          Observacao: observacao
         };
         registros.push(registro);
     localStorage.setItem('documentos', JSON.stringify(registros));
 
 
-        const linha = document.createElement('tr');
-        linha.innerHTML = `
+         const linha = document.createElement('tr');
+	 const completos = parseInt(registro.Percentual.replace('%', '').trim());
+         const finalizado = (completos === 100) ? 'OK' : 'PENDENTE';
+
+         linha.innerHTML = `
           <td><input type="checkbox" class="selecaoLinha"></td>
           <td>${registro.Disciplina}</td>
-          <td>${registro.ID}</td>
+          <td class="${completos === 100 ? 'id-completo' : 'id-incompleto'}">${registro.ID}</td>
           <td>${registro.Etapa}</td>
           <td>${registro.Documento}</td>
-          <td>${registro.Status}</td>
+          <td class="${finalizado === 'OK' ? 'id-completo': 'id-incompleto'}">${registro.Status}</td>
           <td>${registro.Percentual}</td>
-          <td>${registro.Observação}</td>
+          <td>${registro.Observacao}</td>
+	  <td><button class = "btnExcluir">Excluir</button></td>
         `;
         tabelaBody.appendChild(linha);
       });
@@ -276,55 +259,102 @@ function renderizarTabela() {
     });
 
     confirmarBtn.addEventListener('click', () => {
-      const linhas = document.querySelectorAll('.selecaoLinha:checked');
-      const status = novoStatus.value.toUpperCase();
-      const obs = novaObs.value;
+  const status = novoStatus.value.toUpperCase();
+  const obs = novaObs.value.trim();
+  const linhasSelecionadas = Array.from(document.querySelectorAll('.selecaoLinha')).filter(chk => chk.checked);
+  let alterou = false;
+  const docsPorId = {};
 
-      const docsPorId = {};
+  if (linhasSelecionadas.length > 0) {
+    // Atualização por seleção de checkboxes
+    linhasSelecionadas.forEach(chk => {
+      const linha = chk.closest('tr');
+      const id = linha.cells[2].textContent;
 
-      linhas.forEach(linha => {
-        const tr = linha.closest('tr');
-        const id = tr.cells[2].textContent;
-        const doc = tr.cells[4].textContent;
-
-        tr.cells[5].textContent = status;
-        tr.cells[7].textContent = obs;
-
-        const registro = registros.find(r => r.ID === id && r.Documento === doc);
-        if (registro) {
+      registros.forEach(registro => {
+        if (registro.ID === id) {
           registro.Status = status;
-          registro.Observação = obs;
+          registro.Observacao = obs;
+          alterou = true;
+
+          if (!docsPorId[registro.ID]) docsPorId[registro.ID] = [];
+          docsPorId[registro.ID].push({ doc: registro.Documento, status });
         }
-
-        if (!docsPorId[id]) docsPorId[id] = [];
-        docsPorId[id].push({ doc, status });
       });
-
-      Object.keys(docsPorId).forEach(id => {
-        const docs = registros.filter(r => r.ID === id);
-        const total = docs.filter(d => d.Status !== '-').length;
-        const okCount = docs.filter(d => d.Status === 'OK').length;
-        const novoPercentual = total > 0 ? Math.round((okCount / total) * 100) + '%' : '0%';
-
-        const linhasTabela = Array.from(tabelaBody.querySelectorAll('tr')).filter(tr => tr.cells[2].textContent === id);
-        linhasTabela.forEach(tr => {
-          tr.cells[6].textContent = novoPercentual;
-        });
-
-        docs.forEach(d => {
-          d.Percentual = novoPercentual;
-        });
-      });
-      localStorage.setItem('documentos', JSON.stringify(registros));
-
-
-      modal.style.display = 'none';
-      alert('Atualização realizada com sucesso!');
     });
+  } else {
+    // Atualização por intervalo de ID
+    const idInicioVal = parseInt(document.getElementById('idInicio').value, 10);
+    const idFimVal = parseInt(document.getElementById('idFim').value, 10);
+
+    if (isNaN(idInicioVal) || isNaN(idFimVal)) {
+      return alert('Preencha os campos ID Inicial e ID Final corretamente.');
+    }
+    if (idInicioVal > idFimVal) {
+      return alert('ID Inicial deve ser menor ou igual ao ID Final.');
+    }
+
+    registros.forEach(registro => {
+      const idNum = parseInt(registro.ID, 10);
+      if (!isNaN(idNum) && idNum >= idInicioVal && idNum <= idFimVal) {
+        registro.Status = status;
+        registro.Observacao = obs;
+        alterou = true;
+
+        if (!docsPorId[registro.ID]) docsPorId[registro.ID] = [];
+        docsPorId[registro.ID].push({ doc: registro.Documento, status });
+      }
+    });
+  }
+
+  if (!alterou) {
+    return alert('Nenhum registro foi alterado.');
+  }
+
+  // Recalcular percentuais para IDs afetados
+  Object.keys(docsPorId).forEach(id => {
+    const docs = registros.filter(r => r.ID === id);
+    const total = docs.filter(d => d.Status !== '-').length;
+    const okCount = docs.filter(d => d.Status === 'OK').length;
+    const novoPercentual = total > 0 ? Math.round((okCount / total) * 100) + '%' : '0%';
+
+    docs.forEach(d => d.Percentual = novoPercentual);
+
+    // Atualiza na tabela
+    const linhasTabela = Array.from(tabelaBody.querySelectorAll('tr')).filter(tr => tr.cells[2].textContent === id);
+    linhasTabela.forEach(tr => {
+      tr.cells[5].textContent = status;
+      tr.cells[6].textContent = novoPercentual;
+      tr.cells[7].textContent = obs;
+    });
+  });
+
+  localStorage.setItem('documentos', JSON.stringify(registros));
+  modal.style.display = 'none';
+  alert('Atualização realizada com sucesso!');
+});
+
+
 
     selecionarTodos.addEventListener('change', () => {
       document.querySelectorAll('.selecaoLinha').forEach(chk => chk.checked = selecionarTodos.checked);
     });
+
+const idInicioInput = document.getElementById('idInicio');
+const idFimInput = document.getElementById('idFim');
+
+// Atualiza o estado dos inputs de intervalo
+
+// Listener para cada checkbox de linha
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('selecaoLinha') || e.target.id === 'selecionarTodos') {
+    atualizarCamposID();
+  }
+});
+
+// Atualizar campos no carregamento inicial também
+atualizarCamposID();
+
 
   </script>
 </body>
